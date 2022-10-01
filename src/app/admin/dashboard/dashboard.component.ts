@@ -9,29 +9,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 export class DashboardComponent implements OnInit {
 
   offerForm!:FormGroup;
-  
-  cars = [
-    {
-      id : 0,
-      brand:'Renault',
-      model:'Laguna',
-      color:'gray',
-    },
-    {
-      id : 1,
-      brand:'Peugeot',
-      model:'508',
-      color:'red',
-    },
-    {
-      id : 2,
-      brand:'Opel',
-      model:'Corsa',
-      color:'blue',
-    },
-  ];
 
-  currentCar: any;
+  offers: any[] = []
 
   constructor(
     private formBuilder:FormBuilder
@@ -43,6 +22,7 @@ export class DashboardComponent implements OnInit {
 
   initOfferForm(): void {
     this.offerForm = this.formBuilder.group({
+      index: [0],
       title: ['',[Validators.required, Validators.maxLength(100), Validators.minLength(3)]],
       brand: '',
       model: '',
@@ -52,7 +32,25 @@ export class DashboardComponent implements OnInit {
   }
 
   onSubmitOfferForm():void {
-    console.log(this.offerForm.value);    
+    const offerIndex = this.offerForm.value.index;
+    let offer = this.offerForm.value;
+    if(offerIndex == null || offerIndex == undefined) {
+      delete offer.Index;
+      this.offers.push(offer);
+    } else {
+      delete offer.index;
+      this.offers[offerIndex] = offer;
+    }
+    this.offerForm.reset();
+    console.log(this.offers);
+  }
+
+  onEditOffer(offer:any, index: number): void {
+    this.offerForm.setValue({...offer, index});
+  }
+
+  onDeleteOffer(index: number): void {
+    this.offers.splice(index, 1)
   }
 
 }
