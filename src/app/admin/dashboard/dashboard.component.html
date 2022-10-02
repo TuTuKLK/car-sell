@@ -5,7 +5,7 @@
         <h1 class="disply-6 text-dark">Créer une annonce</h1>
         <hr class="bg-dark mb-5" />
         <form [formGroup]="offerForm" (ngSubmit)="onSubmitOfferForm()">
-          <input type="number" formControlName="index" hidden>
+          <input type="number" formControlName="index" hidden />
           <div class="form-group mb-3">
             <label for="offerTitleInput">Titre</label>
             <input
@@ -22,6 +22,7 @@
               id="offerBrandInput"
               class="form-control"
               formControlName="brand"
+              appUppercaseInput
             />
           </div>
           <div class="form-group mb-3">
@@ -52,7 +53,11 @@
             />
           </div>
           <div class="d-flex">
-            <button class="btn btn-success mx-auto" type="submit" [disabled]="offerForm.invalid">
+            <button
+              class="btn btn-success mx-auto"
+              type="submit"
+              [disabled]="offerForm.invalid"
+            >
               Enregistrer
             </button>
           </div>
@@ -65,7 +70,7 @@
     <div class="col-12 col-lg-8 mx-auto">
       <div class="bg-white shadow p-4 rounded">
         <h1 class="display-6 text-dark">Annonces enregistrées</h1>
-        <hr class="bg-dark mb-5">
+        <hr class="bg-dark mb-5" />
         <table class="table">
           <thead>
             <tr>
@@ -79,12 +84,24 @@
           <tbody>
             <tr *ngFor="let offer of offers; let i = index">
               <th>{{ i }}</th>
-              <td>{{ offer.title }}</td>
+              <td>{{ offer.title | firstCharUppercase }}</td>
               <td>{{ offer.brand }} {{ offer.model }}</td>
-              <td>{{ offer.price }}</td>
+              <td>{{ offer.price | currency: "EUR":"symbol":"4.2-2":"fr" }}</td>
               <td>
-                <button class="btn btn-primary" type="button" (click)="onEditOffer(offer, i)">Modifier</button>
-                <button class="btn btn-danger" type="button" (click)="onDeleteOffer(i)">Supprimer</button>
+                <button
+                  class="btn btn-primary"
+                  type="button"
+                  (click)="onEditOffer(offer, i)"
+                >
+                  Modifier
+                </button>
+                <button
+                  class="btn btn-danger"
+                  type="button"
+                  (click)="onDeleteOffer(i)"
+                >
+                  Supprimer
+                </button>
               </td>
             </tr>
           </tbody>
@@ -92,6 +109,4 @@
       </div>
     </div>
   </div>
-
 </div>
-
