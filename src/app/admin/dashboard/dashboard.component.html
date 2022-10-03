@@ -5,7 +5,7 @@
         <h1 class="disply-6 text-dark">Créer une annonce</h1>
         <hr class="bg-dark mb-5" />
         <form [formGroup]="offerForm" (ngSubmit)="onSubmitOfferForm()">
-          <input type="number" formControlName="index" hidden />
+          <input type="text" formControlName="id" hidden />
           <div class="form-group mb-3">
             <label for="offerTitleInput">Titre</label>
             <input
@@ -91,14 +91,14 @@
                 <button
                   class="btn btn-primary"
                   type="button"
-                  (click)="onEditOffer(offer, i)"
+                  (click)="onEditOffer(offer)"
                 >
                   Modifier
                 </button>
                 <button
                   class="btn btn-danger"
                   type="button"
-                  (click)="onDeleteOffer(i)"
+                  (click)="onDeleteOffer(offer.id)"
                 >
                   Supprimer
                 </button>
