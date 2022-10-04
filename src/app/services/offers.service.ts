@@ -2,6 +2,7 @@ import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { Offer } from './../interfaces/offer';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject} from 'rxjs';
+import { AngularFireStorage } from '@angular/fire/compat/storage';
 
 @Injectable({
   providedIn: 'root'
@@ -13,9 +14,10 @@ export class OffersService {
   offersSubject: BehaviorSubject<Offer[]> = new BehaviorSubject(<Offer[]>[]);
 
   constructor(
-    private db: AngularFireDatabase
+    private db: AngularFireDatabase,
+    private storage: AngularFireStorage
   ) { 
-    this.getOffersOn()
+    // this.getOffersOn()
   }
 
   getOffers(): void {
@@ -41,39 +43,69 @@ export class OffersService {
     this.offersSubject.next(this.offers);
   }
 
-  createOffer(offer: Offer): Promise<Offer> {
-    return new Promise((resolve, reject) => {
-      this.db.list('offers').push(offer)
-      .then(res => {
-        const createdOffer = {...offer, id: <string>res.key};
+  async createOffer(offer: Offer, offerPhoto?: any): Promise<Offer> {
+    try {
+        const photoUrl = offerPhoto? await this.uploadPhoto(offerPhoto): '';
+        const response =  this.db.list('offers').push({...offer, photo: photoUrl});
+        const createdOffer = {...offer, photo: photoUrl, id: <string>response.key};
         this.offers.push(createdOffer);
         this.dispatchOffers();
-        resolve(createdOffer);
-      }).catch(reject)
-    });
+        return createdOffer;
+    } catch (error) {
+      throw error
+    }
   }
 
-  editOffer(offer: Offer, offerId: string): Promise<Offer> {
+  async editOffer(offer: Offer, offerId: string, newOfferPhoto?: any): Promise<Offer> {
+    try {
+      if (newOfferPhoto && offer.photo && offer.photo !== '') {
+        await this.removePhoto(offer.photo);
+      }
+      if (newOfferPhoto) {
+        const newPhotoUrl = await this.uploadPhoto(newOfferPhoto);
+        offer.photo = newPhotoUrl;
+      }
+      await this.db.list('offers').update(offerId, offer);
+      const offerIndexToUpdate = this.offers.findIndex( el => el.id === offerId);
+      this.offers[offerIndexToUpdate] = {...offer, id: offerId}
+      this.dispatchOffers();
+      return {...offer, id:offerId};
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteOffer(offerId: string): Promise<Offer> {
+    try {
+      const offerToDeleteIndex = this.offers.findIndex(el => el.id === offerId);
+      const offerToDelete = this.offers[offerToDeleteIndex];
+      if (offerToDelete.photo && offerToDelete.photo !== '') {
+        await this.removePhoto(offerToDelete.photo)
+      }
+      await this.db.list('offers').remove(offerId)
+      this.offers.splice(offerToDeleteIndex, 1);
+      this.dispatchOffers();
+      return offerToDelete;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private uploadPhoto(photo: any): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.db.list('offers').update(offerId, offer)
-      .then(() => {
-        const updatedOffer = {...offer, id: offerId};
-        const offerToUpdateIndex = this.offers.findIndex(el => el.id === offerId);
-        this.offers[offerToUpdateIndex] = updatedOffer;
-        this.dispatchOffers();
-        resolve({...offer, id: offerId});
+      const upload = this.storage.upload('offers/' + Date.now() + ('-') + photo.name, photo);
+      upload.then((res) => {
+        resolve(res.ref.getDownloadURL());
       }).catch(reject);
     });
   }
 
-  deleteOffer(offerId: string): Promise<Offer> {
+  private removePhoto(photoUrl: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.db.list('offers').remove(offerId)
-      .then(() => {
-        const offerToDeleteIndex = this.offers.findIndex(el => el.id === offerId);
-        this.offers.splice(offerToDeleteIndex, 1);
-        this.dispatchOffers();
-      }).catch(console.error);
+      this.storage.refFromURL(photoUrl).delete().subscribe({
+        complete: () => resolve({}),
+        error: reject
+      });
     });
   }
 

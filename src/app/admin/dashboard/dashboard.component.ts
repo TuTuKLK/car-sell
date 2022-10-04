@@ -18,6 +18,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   subscription!: Subscription;
 
+  currentOfferPhotoFile!: any;
+  currentOfferPhotoUrl!: string;
+
   constructor(
     private formBuilder:FormBuilder,
     private offersService: OffersService
@@ -41,6 +44,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.offerForm = this.formBuilder.group({
       id: [null],
       title: ['',[Validators.required, Validators.maxLength(100), Validators.minLength(3)]],
+      photo: [],
       brand: '',
       model: '',
       description: '',
@@ -51,20 +55,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
   onSubmitOfferForm():void {
     const offerId = this.offerForm.value.id;
     let offer = this.offerForm.value;
+    const offerPhotoUrl = this.offers.find(el => el.id === offerId?.photo);
+    offer = {...offer, photo: offerPhotoUrl};
     if(!offerId || offerId && offerId=== '') { //CREATION  
-      delete offer.Index;
-      this.offersService.createOffer(offer).catch(console.error);
+      delete offer.id;
+      this.offersService.createOffer(offer, this.currentOfferPhotoFile).catch(console.error);
     } else { // MODIFICATION
-      delete offer.index;
-      this.offersService.editOffer(offer, offerId).catch(console.error);
+      delete offer.id;
+      this.offersService.editOffer(offer, offerId, this.currentOfferPhotoFile).catch(console.error);
     }
     this.offerForm.reset();
+    this.currentOfferPhotoFile = null;
+    this.currentOfferPhotoUrl = '';
+  }
+
+  onChangeOfferPhoto($event: any): void {
+    this.currentOfferPhotoFile = $event.target.files[0];
+    const fileReader = new FileReader();
+    fileReader.readAsDataURL(this.currentOfferPhotoFile);
+    fileReader.onload = (e) => {
+      this.currentOfferPhotoUrl = <string> e.target?.result
+    }
   }
 
   onEditOffer(offer:Offer): void {
+    this.currentOfferPhotoUrl = offer.photo ? <string>offer.photo: '';
     this.offerForm.setValue({
       id: offer.id ? offer.id : '',
       title: offer.title ? offer.title : '',
+      photo: '',
       brand: offer.brand ? offer.brand : '',
       model: offer.model ? offer.model : '',
       description: offer.description ? offer.description : '',
