@@ -5,6 +5,7 @@ import { RouterModule, Routes } from '@angular/router';
 const routes: Routes = [
   { path: 'admin', loadChildren: () => import('./admin/admin.module').then( m => m.AdminModule) },
   { path: 'auth', loadChildren: () => import('./auth/auth.module').then( m => m.AuthModule) },
+  { path: 'account', loadChildren: () => import('./account/account.module').then( m => m.AccountModule) },
   { path: 'home', component: HomeComponent },
   { path: '', redirectTo: 'home', pathMatch: "full" },
   { path: '**', redirectTo: 'home' },
