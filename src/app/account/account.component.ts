@@ -13,6 +13,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   currentUserSubscription!: Subscription;
   currentUser!: User;
 
+
   constructor(
     private authService: AuthService
   ) { }
